@@ -23,19 +23,17 @@ public class WalletService {
         Wallet wallet = walletRepository.findById(walletId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Wallet not found"));
 
-        synchronized (this) {
-            if (operationType.equals("WITHDRAW") && wallet.getBalance().compareTo(amount) < 0) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Insufficient funds");
-            }
-
-            BigDecimal newBalance = operationType.equals("DEPOSIT")
-                    ? wallet.getBalance().add(amount)
-                    : wallet.getBalance().subtract(amount);
-
-            wallet.setBalance(newBalance);
-            wallet.setUpdatedAt(LocalDateTime.now());
-            return walletRepository.save(wallet);
+        if (operationType.equals("WITHDRAW") && wallet.getBalance().compareTo(amount) < 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Insufficient funds");
         }
+
+        BigDecimal newBalance = operationType.equals("DEPOSIT")
+                ? wallet.getBalance().add(amount)
+                : wallet.getBalance().subtract(amount);
+
+        wallet.setBalance(newBalance);
+        wallet.setUpdatedAt(LocalDateTime.now());
+        return walletRepository.save(wallet);
     }
 
     public BigDecimal getBalance(UUID walletId) {
